@@ -192,27 +192,31 @@ with st.spinner('데이터를 수집하고 분석 중입니다... (약 5초 소�
                 if not df.empty:
                     display_df = df[['name', 'rate', 'price', 'volume', 'link']].copy()
 
-                    # [1] 콤마(,)와 단위(원, 주)를 직접 붙여서 문자열로 만듭니다.
-                    # 이제 "10,000원", "5,000,000주" 처럼 보입니다.
-                    display_df['price'] = display_df['price'].apply(lambda x: f"{x:,}원")
-                    display_df['volume'] = display_df['volume'].apply(lambda x: f"{x:,}주")
+                    # [핵심 1] Pandas Styler를 사용하여 포맷(콤마+글자) 지정
+                    # 데이터 값을 직접 바꾸지 않고 보여주는 형식만 지정합니다.
+                    styler = display_df.style.format({
+                        "rate": "{:.2f}%",  # 소수점 2자리 + %
+                        "price": "{:,}원",  # 1,000단위 콤마 + 원
+                        "volume": "{:,}"  # 1,000단위 콤마 (거래량은 깔끔하게 숫자만 추천)
+                    })
 
-                    # [2] Pandas Style 기능을 써서 '강제로' 우측 정렬을 시킵니다.
-                    # Streamlit 설정을 덮어쓰고 확실하게 정렬됩니다.
-                    styled_df = display_df.style.set_properties(
-                        subset=['price', 'volume'],
+                    # [핵심 2] 강제 우측 정렬 (CSS 적용)
+                    # price와 volume 컬럼을 강제로 오른쪽으로 정렬합니다.
+                    styler = styler.set_properties(
+                        subset=['price', 'volume', 'rate'],
                         **{'text-align': 'right'}
                     )
 
-                    # [3] 표 출력
-                    # column_config에서는 복잡한 설정(NumberColumn 등)을 빼고 이름만 바꿉니다.
+                    # [핵심 3] 표 출력
+                    # column_config에서 price와 volume 설정을 뺍니다. (Styler가 우선 적용되도록)
                     st.dataframe(
-                        styled_df,
+                        styler,
                         column_config={
                             "name": "종목명",
-                            "rate": st.column_config.NumberColumn("등락률", format="%.2f%%"),
-                            "price": "현재가",  # 단순 이름 변경
-                            "volume": "거래량",  # 단순 이름 변경
+                            # 등락률, 현재가, 거래량은 위에서 설정한 Styler가 처리합니다.
+                            "rate": "등락률",
+                            "price": "현재가",
+                            "volume": "거래량",
                             "link": st.column_config.LinkColumn("상세정보", display_text="네이버이동"),
                         },
                         hide_index=True,

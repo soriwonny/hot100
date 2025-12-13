@@ -190,16 +190,22 @@ with st.spinner('데이터를 수집하고 분석 중입니다... (약 5초 소�
                 # 데이터프레임으로 변환하여 표 출력
                 df = pd.DataFrame(stocks)
                 if not df.empty:
-                    # 화면에 보여줄 컬럼 선택 및 링크 설정
+                    # 화면에 보여줄 컬럼 선택 및 복사
                     display_df = df[['name', 'rate', 'price', 'volume', 'link']].copy()
 
+                    # [수정 포인트] 1000 단위 쉼표(,) 및 '원' 글자 추가
+                    # 숫자를 문자열(글자)로 바꿔서 원하는 모양을 만듭니다.
+                    display_df['price'] = display_df['price'].apply(lambda x: f"{x:,}원")
+                    display_df['volume'] = display_df['volume'].apply(lambda x: f"{x:,}")
+
+                    # 표 출력
                     st.dataframe(
                         display_df,
                         column_config={
                             "name": "종목명",
-                            "rate": st.column_config.NumberColumn("등락률", format="%.2f%%"),
-                            "price": st.column_config.NumberColumn("현재가", format="%d원"),
-                            "volume": st.column_config.NumberColumn("거래량", format="%d"),
+                            "rate": st.column_config.NumberColumn("등락률", format="%.2f%%"),  # 등락률은 숫자 유지 (색상/정렬 위해)
+                            "price": st.column_config.TextColumn("현재가"),  # 문자열로 바뀌었으므로 TextColumn 사용
+                            "volume": st.column_config.TextColumn("거래량"),  # 문자열로 바뀌었으므로 TextColumn 사용
                             "link": st.column_config.LinkColumn("상세정보", display_text="네이버이동"),
                         },
                         hide_index=True,

@@ -190,28 +190,23 @@ with st.spinner('데이터를 수집하고 분석 중입니다... (약 5초 소�
                 # 데이터프레임으로 변환하여 표 출력
                 df = pd.DataFrame(stocks)
                 if not df.empty:
-                    # 화면에 보여줄 컬럼 선택 및 복사
+                    # [수정] 문자열로 변환하지 않고 '숫자 데이터' 그대로 사용
+                    # 이렇게 해야 우측 정렬과 정렬(Sorting) 기능이 작동합니다.
                     display_df = df[['name', 'rate', 'price', 'volume', 'link']].copy()
 
-                    # [1] 데이터 포맷팅 (문자열 변환) - 기존과 동일
-                    display_df['price'] = display_df['price'].apply(lambda x: f"{x:,}원")
-                    display_df['volume'] = display_df['volume'].apply(lambda x: f"{x:,}")
-
-                    # [2] 스타일 적용 (우측 정렬 추가)
-                    # price와 volume 컬럼의 텍스트 정렬을 'right'로 설정합니다.
-                    styled_df = display_df.style.set_properties(
-                        subset=['price', 'volume'],
-                        **{'text-align': 'right'}
-                    )
-
-                    # [3] 표 출력 (styled_df 전달)
+                    # 표 출력
                     st.dataframe(
-                        styled_df,
+                        display_df,
                         column_config={
                             "name": "종목명",
                             "rate": st.column_config.NumberColumn("등락률", format="%.2f%%"),
-                            "price": st.column_config.TextColumn("현재가"),
-                            "volume": st.column_config.TextColumn("거래량"),
+
+                            # [핵심] 숫자 컬럼(NumberColumn) 설정
+                            # format을 지정하지 않으면 자동으로 1,000 단위 쉼표가 붙습니다.
+                            # 단위를 제목에 적어주는 것이 가장 깔끔합니다.
+                            "price": st.column_config.NumberColumn("현재가 (원)"),
+                            "volume": st.column_config.NumberColumn("거래량 (주)"),
+
                             "link": st.column_config.LinkColumn("상세정보", display_text="네이버이동"),
                         },
                         hide_index=True,

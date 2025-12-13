@@ -190,23 +190,29 @@ with st.spinner('데이터를 수집하고 분석 중입니다... (약 5초 소�
                 # 데이터프레임으로 변환하여 표 출력
                 df = pd.DataFrame(stocks)
                 if not df.empty:
-                    # [수정] 문자열로 변환하지 않고 '숫자 데이터' 그대로 사용
-                    # 이렇게 해야 우측 정렬과 정렬(Sorting) 기능이 작동합니다.
                     display_df = df[['name', 'rate', 'price', 'volume', 'link']].copy()
 
-                    # 표 출력
+                    # [1] 콤마(,)와 단위(원, 주)를 직접 붙여서 문자열로 만듭니다.
+                    # 이제 "10,000원", "5,000,000주" 처럼 보입니다.
+                    display_df['price'] = display_df['price'].apply(lambda x: f"{x:,}원")
+                    display_df['volume'] = display_df['volume'].apply(lambda x: f"{x:,}주")
+
+                    # [2] Pandas Style 기능을 써서 '강제로' 우측 정렬을 시킵니다.
+                    # Streamlit 설정을 덮어쓰고 확실하게 정렬됩니다.
+                    styled_df = display_df.style.set_properties(
+                        subset=['price', 'volume'],
+                        **{'text-align': 'right'}
+                    )
+
+                    # [3] 표 출력
+                    # column_config에서는 복잡한 설정(NumberColumn 등)을 빼고 이름만 바꿉니다.
                     st.dataframe(
-                        display_df,
+                        styled_df,
                         column_config={
                             "name": "종목명",
                             "rate": st.column_config.NumberColumn("등락률", format="%.2f%%"),
-
-                            # [핵심] 숫자 컬럼(NumberColumn) 설정
-                            # format을 지정하지 않으면 자동으로 1,000 단위 쉼표가 붙습니다.
-                            # 단위를 제목에 적어주는 것이 가장 깔끔합니다.
-                            "price": st.column_config.NumberColumn("현재가 (원)"),
-                            "volume": st.column_config.NumberColumn("거래량 (주)"),
-
+                            "price": "현재가",  # 단순 이름 변경
+                            "volume": "거래량",  # 단순 이름 변경
                             "link": st.column_config.LinkColumn("상세정보", display_text="네이버이동"),
                         },
                         hide_index=True,

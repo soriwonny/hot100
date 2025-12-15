@@ -152,7 +152,7 @@ st.markdown("네이버 금융 실시간 데이터를 기반으로 **테마별 �
 
 
 # 데이터 로딩 함수 (캐싱 적용으로 속도 향상)
-@st.cache_data(ttl=60)  # 60초 동안 데이터 유지
+@st.cache_data(ttl=60, show_spinner=False)  # 60초 동안 데이터 유지
 def load_data():
     scraper = NaverThemeGrouper()
     top_100 = scraper.get_top_100_stocks()
